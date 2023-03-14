@@ -843,20 +843,28 @@
 	   (setf (elt newseq j) (elt sequence2 i2))
 	   (setf  i2 (f+ 1  i2))))))
 
+(defun hash-table-entries (hash-table)
+  (let ((entries (list)))
+    (maphash (lambda (key value)
+               (push (cons key value) entries))
+             hash-table)
+    entries))
+
+(defun hash-table-iterator (hash-table)
+  (let ((entries (hash-table-entries hash-table))
+        (index 0))
+    (lambda ()
+      (let ((entry (nth index entries)))
+        (incf index)
+        (if entry
+            (destructuring-bind (key . value) entry
+              (values t key value))
+            (values nil nil nil))))))
+
 (defmacro with-hash-table-iterator ((name hash-table) &body body)
-  (declare (optimize (safety 1)))
-  (let ((table (sgen))
-	(ind (sgen)))
-    `(let ((,table ,hash-table)
-	   (,ind 0))
-       (macrolet ((,name ()
-			 `(multiple-value-bind
-			   (more key val)
-			   (si::next-hash-table-entry ,',table ,',ind)
-			   (cond ((>= (the fixnum more) 0)
-				  (setq ,',ind more)
-				  (values t key val))))))
-		 ,@body))))
+  `(let ((,name (hash-table-iterator ,hash-table)))
+     (macrolet ((,name () `(funcall ,',name)))
+       ,@body)))
 		 
 
 (defun copy-seq (s) 
