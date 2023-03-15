@@ -121,12 +121,18 @@
 
 (defun sharp-p-reader (stream subchar arg)
   (declare (ignore subchar arg))
-  (let ((x (parse-namestring (read stream)))) x))
+  (let* ((namestring (read stream t nil t))
+         (pathname (unless *read-suppress*
+                     (parse-namestring namestring))))
+    pathname))
 
 (defun sharp-dq-reader (stream subchar arg);FIXME arg && read-suppress
   (declare (ignore subchar arg))
   (unread-char #\" stream)
-  (let ((x (parse-namestring (read stream)))) x))
+  (let* ((namestring (read stream t nil t))
+         (pathname (unless *read-suppress*
+                     (parse-namestring namestring))))
+    pathname))
 
 (set-dispatch-macro-character #\# #\p 'sharp-p-reader)
 (set-dispatch-macro-character #\# #\P 'sharp-p-reader)
