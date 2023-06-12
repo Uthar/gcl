@@ -857,7 +857,8 @@
       (let ((entry (nth index entries)))
         (incf index)
         (if entry
-            (destructuring-bind (key . value) entry
+            (let ((key (car entry))
+                  (value (cadr entry)))
               (values t key value))
             (values nil nil nil))))))
 
